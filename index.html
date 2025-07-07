@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Assessment Dashboard | Lead Analysis System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .critical-alerts {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-card.critical {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        }
+
+        .metric-card.warning {
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
+        }
+
+        .metric-card.success {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);
+        }
+
+        .metric-card.info {
+            border-left-color: #3498db;
+            background: linear-gradient(135deg, #f0f8ff 0%, #cce7ff 100%);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .metric-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .metric-change.positive {
+            color: #27ae60;
+        }
+
+        .metric-change.negative {
+            color: #e74c3c;
+        }
+
+        .roi-calculator {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .roi-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .roi-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .financial-analysis {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .financial-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .financial-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .financial-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .priority-actions {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .priority-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .action-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .action-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .action-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .benchmark-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .benchmark-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .benchmark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gauge-item {
+            text-align: center;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 10px auto;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button {
+            background: white;
+            color: #333;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: #f8f9fa;
+        }
+
+        .cta-button.primary {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .cta-button.primary:hover {
+            background: #34495e;
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .financial-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .benchmark-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1 id="leadName">ANALISI STRATEGICA: GORI Andrea</h1>
+            <div class="subtitle">Executive Performance & ROI Assessment Dashboard</div>
+        </div>
+
+        <!-- Critical Alerts -->
+        <div class="critical-alerts" id="criticalAlerts">
+            ⚠️ FAMIGLIA CRITICA 🎯 RISCHIO SOSTITUZIONE 💰 EMORRAGIA €111,200
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card critical">
+                <div class="metric-header">
+                    <span class="metric-title">Family Satisfaction</span>
+                    <span>👨‍👩‍👧‍👦</span>
+                </div>
+                <div class="metric-value">5/10</div>
+                <div class="metric-change negative">
+                    <span>⚠️ Zona critica familiare</span>
+                </div>
+            </div>
+
+            <div class="metric-card critical">
+                <div class="metric-header">
+                    <span class="metric-title">Stress Impact</span>
+                    <span>📈</span>
+                </div>
+                <div class="metric-value">9/10</div>
+                <div class="metric-change negative">
+                    <span>🔴 Impatto lavorativo critico</span>
+                </div>
+            </div>
+
+            <div class="metric-card warning">
+                <div class="metric-header">
+                    <span class="metric-title">Boss Trust Level</span>
+                    <span>🤝</span>
+                </div>
+                <div class="metric-value">7/10</div>
+                <div class="metric-change">
+                    <span>🟡 Margine miglioramento</span>
+                </div>
+            </div>
+
+            <div class="metric-card warning">
+                <div class="metric-header">
+                    <span class="metric-title">Energy Level</span>
+                    <span>⚡</span>
+                </div>
+                <div class="metric-value">6/10</div>
+                <div class="metric-change negative">
+                    <span>⬇️ Sotto soglia ottimale</span>
+                </div>
+            </div>
+
+            <div class="metric-card success">
+                <div class="metric-header">
+                    <span class="metric-title">Motivation Level</span>
+                    <span>🎯</span>
+                </div>
+                <div class="metric-value">9/10</div>
+                <div class="metric-change positive">
+                    <span>✅ Altissima motivazione</span>
+                </div>
+            </div>
+
+            <div class="metric-card info">
+                <div class="metric-header">
+                    <span class="metric-title">Control Level</span>
+                    <span>🎛️</span>
+                </div>
+                <div class="metric-value">8/10</div>
+                <div class="metric-change positive">
+                    <span>📊 Controllo buono</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROI Calculator -->
+        <div class="roi-calculator">
+            <div class="roi-title">ROI PROIETTATO</div>
+            <div class="roi-value">197.5x</div>
+            <div>Ritorno investimento garantito in <strong>0.06 mesi</strong> | Payback immediato</div>
+        </div>
+
+        <!-- Financial Analysis -->
+        <div class="financial-analysis">
+            <h2 style="text-align: center; margin-bottom: 25px; font-size: 1.8rem;">💰 ANALISI FINANZIARIA DETTAGLIATA</h2>
+            <div class="financial-grid">
+                <div class="financial-item">
+                    <div class="financial-value">€111,200</div>
+                    <div class="financial-label">Perdita Annuale Corrente</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">€750,000</div>
+                    <div class="financial-label">Potenziale Fatturato</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">€1,000</div>
+                    <div class="financial-label">Investimento Richiesto</div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-value">€638,800</div>
+                    <div class="financial-label">Guadagno Netto Annuale</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <div class="chart-title">📊 Performance vs Benchmark Settore</div>
+                <canvas id="performanceChart" width="400" height="300"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">📈 Proiezione ROI 12 Mesi</div>
+                <canvas id="roiChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Benchmark Section -->
+        <div class="benchmark-section">
+            <div class="benchmark-title">🏆 POSIZIONAMENTO COMPETITIVO</div>
+            <div class="benchmark-grid">
+                <div class="gauge-item">
+                    <div class="gauge-container">
+                        <canvas id="performanceGauge" width="150" height="150"></canvas>
+                    </div>
+                    <div style="font-weight: 600;">Performance: <span style="color: #3498db;">56%</span></div>
+                </div>
+                <div class="gauge-item">
+                    <div class="gauge-container">
+                        <canvas id="stressGauge" width="150" height="150"></canvas>
+                    </div>
+                    <div style="font-weight: 600;">Stress: <span style="color: #e74c3c;">90%</span></div>
+                </div>
+                <div class="gauge-item">
+                    <div class="gauge-container">
+                        <canvas id="familyGauge" width="150" height="150"></canvas>
+                    </div>
+                    <div style="font-weight: 600;">Famiglia: <span style="color: #f39c12;">50%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Actions -->
+        <div class="priority-actions">
+            <div class="priority-title">🎯 AZIONI PRIORITARIE IMMEDIATE</div>
+            <div class="action-item">
+                <div class="action-icon">⚠️</div>
+                <div class="action-text">RISCHIO SOSTITUZIONE - Intervento immediato stress management</div>
+            </div>
+            <div class="action-item">
+                <div class="action-icon">⚡</div>
+                <div class="action-text">CRISI ENERGETICA - Protocolli recupero performance</div>
+            </div>
+            <div class="action-item">
+                <div class="action-icon">🆘</div>
+                <div class="action-text">DISPERAZIONE CRITICA - Sistema supporto familiare</div>
+            </div>
+            <div class="action-item">
+                <div class="action-icon">🏆</div>
+                <div class="action-text">CONVERSIONE PREMIUM - Ottimizzazione leadership</div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="cta-section">
+            <div class="cta-title">INTERVENTO STRATEGICO IMMEDIATO RICHIESTO</div>
+            <div class="cta-subtitle">
+                Finestra di opportunità: <strong>30 giorni</strong> per massimizzare ROI e prevenire escalation critica
+            </div>
+            <div class="cta-buttons">
+                <a href="tel:+393351013368" class="cta-button primary">
+                    📞 CHIAMATA STRATEGICA IMMEDIATA
+                </a>
+                <a href="mailto:sanfilippo.giuseppe01@gmail.com?subject=URGENT: Executive Assessment Follow-up&body=Gentile GORI Andrea,%0D%0A%0D%0AHo analizzato la sua valutazione executive e identificato opportunità critiche per:%0D%0A%0D%0A• ROI 197.5x con investimento €1,000%0D%0A• Recupero perdite annuali €111,200%0D%0A• Potenziale fatturato aggiuntivo €750,000%0D%0A%0D%0ALa situazione richiede intervento immediato entro 30 giorni.%0D%0A%0D%0ADisponibile per chiamata strategica urgente.%0D%0A%0D%0ACordiali saluti" class="cta-button">
+                    📧 EMAIL PRIORITARIA
+                </a>
+                <a href="https://wa.me/393351013368?text=Ciao,%20ho%20visto%20l'analisi%20executive%20di%20GORI%20Andrea.%20ROI%20197.5x%20è%20impressionante!%20Possiamo%20parlarne?" class="cta-button">
+                    💬 WHATSAPP BUSINESS
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dati del lead
+        const leadData = {
+            name: "GORI Andrea",
+            email: "sanfilippo.giuseppe01@gmail.com",
+            familySatisfaction: 5,
+            stressImpact: 9,
+            bossTrust: 7,
+            energyLevel: 6,
+            controlLevel: 8,
+            motivationLevel: 9,
+            annualLoss: 111200,
+            revenuePotential: 750000,
+            investmentAmount: 1000,
+            roiMultiplier: 197.5,
+            performancePercentile: 56,
+            stressPercentile: 90,
+            familyPercentile: 50
+        };
+
+        // Crea grafici
+        function createCharts() {
+            // Performance Radar Chart
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(performanceCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Performance', 'Gestione Stress', 'Work-Life Balance', 'Leadership', 'Motivazione', 'Controllo'],
+                    datasets: [{
+                        label: leadData.name,
+                        data: [56, 10, 50, 70, 90, 80],
+                        backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                        borderColor: 'rgba(255, 107, 107, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(255, 107, 107, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 107, 107, 1)'
+                    }, {
+                        label: 'Benchmark Settore',
+                        data: [66, 33, 53, 70, 75, 70],
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(52, 152, 219, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    }
+                }
+            });
+
+            // ROI Progression Chart
+            const roiCtx = document.getElementById('roiChart').getContext('2d');
+            new Chart(roiCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mese 1', 'Mese 2', 'Mese 3', 'Mese 6', 'Mese 9', 'Mese 12'],
+                    datasets: [{
+                        label: 'ROI Cumulativo (€)',
+                        data: [25000, 62500, 125000, 250000, 450000, 638800],
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderColor: 'rgba(39, 174, 96, 1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(39, 174, 96, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }, {
+                        label: 'Investimento (€)',
+                        data: [1000, 1000, 1000, 1000, 1000, 1000],
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointBackgroundColor: 'rgba(231, 76, 60, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+
+            // Gauge Charts
+            createGaugeChart('performanceGauge', 56, '#3498db');
+            createGaugeChart('stressGauge', 90, '#e74c3c');
+            createGaugeChart('familyGauge', 50, '#f39c12');
+        }
+
+        // Funzione per creare gauge charts
+        function createGaugeChart(canvasId, value, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [value, 100 - value],
+                        backgroundColor: [color, '#e9ecef'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    elements: {
+                        arc: {
+                            borderWidth: 0
+                        }
+                    }
+                },
+                plugins: [{
+                    beforeDraw: function(chart) {
+                        const width = chart.width;
+                        const height = chart.height;
+                        const ctx = chart.ctx;
+                        
+                        ctx.restore();
+                        const fontSize = (height / 80).toFixed(2);
+                        ctx.font = fontSize + "em sans-serif";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = color;
+                        ctx.fontWeight = 'bold';
+                        
+                        const text = value + "%";
+                        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                        const textY = height / 2;
+                        
+                        ctx.fillText(text, textX, textY);
+                        ctx.save();
+                    }
+                }]
+            });
+        }
+
+        // Inizializzazione quando la pagina è caricata
+        document.addEventListener('DOMContentLoaded', function() {
+            createCharts();
+        });
+
+        // Funzione per aggiornare con nuovi dati lead
+        window.updateLeadData = function(newData) {
+            Object.assign(leadData, newData);
+            
+            // Aggiorna header
+            if (newData.name) {
+                document.getElementById('leadName').textContent = `ANALISI STRATEGICA: ${newData.name}`;
+            }
+            
+            // Aggiorna email nei link
+            if (newData.email) {
+                const emailLink = document.querySelector('a[href^="mailto:"]');
+                if (emailLink) {
+                    const subject = `URGENT: Executive Assessment Follow-up`;
+                    const body = `Gentile ${newData.name || 'Lead'},%0D%0A%0D%0AHo analizzato la sua valutazione executive e identificato opportunità critiche per:%0D%0A%0D%0A• ROI ${newData.roiMultiplier || '197.5'}x con investimento €${(newData.investmentAmount || 1000).toLocaleString()}%0D%0A• Recupero perdite annuali €${(newData.annualLoss || 111200).toLocaleString()}%0D%0A• Potenziale fatturato aggiuntivo €${(newData.revenuePotential || 750000).toLocaleString()}%0D%0A%0D%0ALa situazione richiede intervento immediato entro 30 giorni.%0D%0A%0D%0ADisponibile per chiamata strategica urgente.%0D%0A%0D%0ACordiali saluti`;
+                    emailLink.href = `mailto:${newData.email}?subject=${subject}&body=${body}`;
+                }
+            }
+            
+            // Aggiorna metriche se fornite
+            if (newData.familySatisfaction !== undefined) {
+                document.querySelector('.metric-card.critical .metric-value').textContent = `${newData.familySatisfaction}/10`;
+            }
+            if (newData.stressImpact !== undefined) {
+                document.querySelectorAll('.metric-card.critical .metric-value')[1].textContent = `${newData.stressImpact}/10`;
+            }
+            if (newData.bossTrust !== undefined) {
+                document.querySelector('.metric-card.warning .metric-value').textContent = `${newData.bossTrust}/10`;
+            }
+            if (newData.energyLevel !== undefined) {
+                document.querySelectorAll('.metric-card.warning .metric-value')[1].textContent = `${newData.energyLevel}/10`;
+            }
+            if (newData.motivationLevel !== undefined) {
+                document.querySelector('.metric-card.success .metric-value').textContent = `${newData.motivationLevel}/10`;
+            }
+            if (newData.controlLevel !== undefined) {
+                document.querySelector('.metric-card.info .metric-value').textContent = `${newData.controlLevel}/10`;
+            }
+            
+            // Aggiorna dati finanziari
+            if (newData.annualLoss !== undefined) {
+                document.querySelector('.financial-item .financial-value').textContent = `€${newData.annualLoss.toLocaleString()}`;
+            }
+            if (newData.revenuePotential !== undefined) {
+                document.querySelectorAll('.financial-item .financial-value')[1].textContent = `€${newData.revenuePotential.toLocaleString()}`;
+            }
+            if (newData.investmentAmount !== undefined) {
+                document.querySelectorAll('.financial-item .financial-value')[2].textContent = `€${newData.investmentAmount.toLocaleString()}`;
+            }
+            if (newData.roiMultiplier !== undefined) {
+                document.querySelector('.roi-value').textContent = `${newData.roiMultiplier}x`;
+            }
+            
+            // Calcola e aggiorna guadagno netto
+            const netGain = (newData.revenuePotential || leadData.revenuePotential) - (newData.annualLoss || leadData.annualLoss);
+            document.querySelectorAll('.financial-item .financial-value')[3].textContent = `€${netGain.toLocaleString()}`;
+            
+            // Aggiorna percentili
+            if (newData.performancePercentile !== undefined) {
+                document.querySelector('#performanceGauge').parentNode.nextElementSibling.querySelector('span').textContent = `${newData.performancePercentile}%`;
+            }
+            if (newData.stressPercentile !== undefined) {
+                document.querySelector('#stressGauge').parentNode.nextElementSibling.querySelector('span').textContent = `${newData.stressPercentile}%`;
+            }
+            if (newData.familyPercentile !== undefined) {
+                document.querySelector('#familyGauge').parentNode.nextElementSibling.querySelector('span').textContent = `${newData.familyPercentile}%`;
+            }
+            
+            // Ricreare i grafici con i nuovi dati
+            Chart.instances.forEach(chart => chart.destroy());
+            createCharts();
+        };
+
+        // Funzione per esportare i dati per CRM
+        window.exportToCRM = function() {
+            const crmData = {
+                leadId: leadData.id || 1,
+                name: leadData.name,
+                email: leadData.email,
+                score: 95,
+                priority: 'A+',
+                stage: 'QUALIFIED',
+                value: leadData.revenuePotential,
+                closeProbability: 95,
+                nextAction: 'CHIAMATA_IMMEDIATA',
+                tags: ['HIGH_VALUE', 'CRITICAL', 'IMMEDIATE_ACTION'],
+                financialData: {
+                    annualLoss: leadData.annualLoss,
+                    revenuePotential: leadData.revenuePotential,
+                    investmentAmount: leadData.investmentAmount,
+                    roiMultiplier: leadData.roiMultiplier
+                },
+                kpis: {
+                    familySatisfaction: leadData.familySatisfaction,
+                    stressImpact: leadData.stressImpact,
+                    bossTrust: leadData.bossTrust,
+                    energyLevel: leadData.energyLevel,
+                    motivationLevel: leadData.motivationLevel,
+                    controlLevel: leadData.controlLevel
+                },
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('Dati pronti per CRM:', crmData);
+            
+            // Simula download JSON per integrazione CRM
+            const blob = new Blob([JSON.stringify(crmData, null, 2)], {
+                type: 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lead-${leadData.name.replace(/\s+/g, '-')}-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            return crmData;
+        };
+
+        // API pubblica per integrazione esterna
+        window.ExecutiveDashboard = {
+            updateData: window.updateLeadData,
+            exportData: window.exportToCRM,
+            getCurrentData: () => leadData,
+            
+            // Preset per diversi tipi di lead
+            presets: {
+                highPerformer: {
+                    familySatisfaction: 8,
+                    stressImpact: 4,
+                    bossTrust: 9,
+                    energyLevel: 8,
+                    motivationLevel: 9,
+                    controlLevel: 8,
+                    performancePercentile: 85,
+                    stressPercentile: 25,
+                    familyPercentile: 80
+                },
+                criticalCase: {
+                    familySatisfaction: 3,
+                    stressImpact: 9,
+                    bossTrust: 5,
+                    energyLevel: 4,
+                    motivationLevel: 8,
+                    controlLevel: 6,
+                    performancePercentile: 35,
+                    stressPercentile: 95,
+                    familyPercentile: 30
+                },
+                averageManager: {
+                    familySatisfaction: 6,
+                    stressImpact: 6,
+                    bossTrust: 7,
+                    energyLevel: 6,
+                    motivationLevel: 7,
+                    controlLevel: 7,
+                    performancePercentile: 60,
+                    stressPercentile: 60,
+                    familyPercentile: 60
+                }
+            }
+        };
+    </script>
+</body>
+</html>
